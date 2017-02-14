@@ -1,0 +1,23 @@
+{
+  "name": "filecrypt.tut",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "bootstrap": "^3.3.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://judzhin@github.com/Judzhin/ms-filecrypt.git"
+  },
+  "author": "Judzhin Miles <info[woof-woof]msbios.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Judzhin/ms-filecrypt/issues"
+  },
+  "homepage": "https://github.com/Judzhin/ms-filecrypt#readme"
+}
