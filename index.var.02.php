@@ -25,7 +25,7 @@
             <div class="form-group">
                 <label for="exampleInputFile">File input</label>
                 <input type="file" id="exampleInputFile">
-                <p class="help-block">Example block-level help text here.</p>
+                <a class="help-block" href="#">Download</a>
             </div>
 
             <div class="progress">
@@ -53,50 +53,55 @@
 <script src="node_modules/crypto-js/aes.js"></script>
 
 <script>
+
+    var objFile;
+
     $('input[type="file"]').on('change', function (e) {
+        objFile = e.target.files[0];
+    });
 
-        var objFile = e.target.files[0],
-            intPartSize = 1024 * 1024,
-            intCountParts = Math.ceil(objFile.size / intPartSize);
+    $('.btn-crypt').on('click', function () {
 
-        var $objProgressBar = $(".progress-bar");
-        $objProgressBar.css("width", "0%");
-        $objProgressBar.html("0%");
+        var objReader = new FileReader();
 
-        $.ajaxSetup({async:true});
+        /**
+         *
+         * @param e
+         */
+        objReader.onload = function (e) {
 
-        for(var intPart = 0; intPart < intCountParts; intPart++) {
+            var arrChuncks = e.target.result.match(/.{1,1048576}/g);
 
-            var objBlob = objFile.slice(
-                intPart * intPartSize,
-                (intPart + 1) * intPartSize
-            );
+            for(var i = 0; i < arrChuncks.length; ++i) {
 
-            var objFormData = new FormData();
-            objFormData.append('data', objBlob);
-            objFormData.append('part', intPart);
-            objFormData.append('name', objFile.name);
+                var objPart = CryptoJS.AES.encrypt(
+                    arrChuncks[i], "Test Pass"
+                );
 
-            $.ajax({
-                type: 'POST',
-                url: '/upload.var.01.php',
-                data: objFormData,
-                dataType: "json",
-                processData: false,
-                contentType: false,
-                success: function (data) {
+                var objFormData = new FormData();
+                objFormData.append('name', objFile.name);
+                objFormData.append('data', objPart.toString());
+                objFormData.append('part', i);
 
-                    var intComplite = Math.round((100 / intCountParts) * (intPart + 1));
-
-                    if (intComplite > 100) {
-                        intComplite = 100;
+                $.ajax({
+                    type: 'POST',
+                    url: '/upload.var.02.php',
+                    data: objFormData,
+                    dataType: "json",
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
                     }
+                });
+            }
 
-                    $objProgressBar.css("width", intComplite + "%");
-                    $objProgressBar.html(intComplite + "%");
-                }
-            });
-        }
+            // var strEncrypted = CryptoJS.AES.encrypt(e.target.result, "Test Pass");
+            // $objA.attr('href', 'data:application/octet-stream,' + strEncrypted);
+            // $objA.attr('download', objFile.name + '.encrypted');
+        };
+
+        objReader.readAsDataURL(objFile);
+
     });
 
 </script>

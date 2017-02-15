@@ -25,7 +25,7 @@
             <div class="form-group">
                 <label for="exampleInputFile">File input</label>
                 <input type="file" id="exampleInputFile">
-                <p class="help-block">Example block-level help text here.</p>
+                <a class="help-block" href="#">Download</a>
             </div>
 
             <div class="progress">
@@ -53,6 +53,7 @@
 <script src="node_modules/crypto-js/aes.js"></script>
 
 <script>
+
     $('input[type="file"]').on('change', function (e) {
 
         var objFile = e.target.files[0],
@@ -71,6 +72,8 @@
                 intPart * intPartSize,
                 (intPart + 1) * intPartSize
             );
+
+            debugger;
 
             var objFormData = new FormData();
             objFormData.append('data', objBlob);

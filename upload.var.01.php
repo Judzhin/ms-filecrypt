@@ -4,7 +4,7 @@
 $data = $_POST;
 
 /** @var mixed $file */
-$file = $_FILES['objFile'];
+$file = $_FILES['data'];
 
 if ($file && 0 == $file['error']) {
 
@@ -31,18 +31,5 @@ if ($file && 0 == $file['error']) {
             'success' => true
         ], JSON_UNESCAPED_UNICODE);
     }
-
-
-    // file_put_contents($path . '_complete', ' ');
-
-//    self::savePartition($objFile, $current_index, $session_id, $upload_id);
-//    self::checkReady($session_id, $upload_id, $cnt_all);
-//    header('Content-type: application/json; charset=utf-8');
-////    echo json_encode([
-////        'result'         => 'partition',
-////        'session_id'     => $session_id,
-////        'upload_id'      => $upload_id,
-////        'cnt_partitions' => $cnt_all
-////    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
