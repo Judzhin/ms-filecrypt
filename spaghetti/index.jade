@@ -1,0 +1,70 @@
+doctype 5
+html(lang="en")
+  head
+    include includes/head
+
+  body
+    #main
+      .title
+        .intro-line
+        h1
+          | Welcome to <a href="/">Securesha.re</a>
+        h1.small
+          | Self-destructing, single-use file sharing. No logging. Even we can't access your data.
+        .intro-line
+      .file-uploader
+        article#link
+          .warning
+        article#downloaded-content
+          .loading
+            .downloadStatusText
+            progress#downloadProgress
+            .downloadLoader.ajaxLoader
+            .clear
+          .fileInfo
+          button
+        header
+          h2 Upload a File
+        article#upload-form
+          form(enctype="multipart/form-data").form-horizontal
+            span.btn.btn-success.fileUpload
+              i.glyphicon.glyphicon-plus
+              span &nbsp;Choose Your File...
+              input#fileupload(type='file',name='file', placeholder='Choose your file', data-url='/putfile')
+
+            .attachedFileInfo
+            #outer-advanced
+              div
+                a#advance-toggle(href='javascript:void(0)') <i class="glyphicon glyphicon-chevron-right"></i>Advanced Options
+              #inner-advanced
+                #password-field
+                  p File Password
+                  input#password.form-control(type='text', name='password')
+                  .passwordNotes.help-block
+                    | Change this password if you have shared it with the recipient previously. 
+                    | The default is secure and randomly generated;
+                    | keep it as-is for maximum security.
+                #expiration-field
+                  p Delete After
+                  .row
+                    .col-md-6
+                      .input-group
+                        input.form-control#views(type='number', name='views', value='1', min='1', max='10')
+                        span.input-group-addon View
+                    .col-md-6
+                      .input-group
+                        input.form-control#days(type='number', name='days', value='7', min='1', max='7')
+                        span.input-group-addon Days
+                  .help-block.explain
+              .clear
+            .status
+              button#submit.btn.btn-primary(type='button', value='Upload')
+                span.glyphicon.glyphicon-lock
+                | &nbsp; Get Secure Link
+              progress#uploadProgress
+              .uploadLoader.ajaxLoader
+            .clear
+            .itemStatus
+        
+    include includes/footer
+

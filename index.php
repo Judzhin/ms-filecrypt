@@ -8,7 +8,7 @@
     <title>Bootstrap 101 Template</title>
 
     <!-- Bootstrap -->
-    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -40,6 +40,7 @@
             </div>
 
             <button type="button" class="btn btn-default btn-crypt">Crypt</button>
+            <button type="button" class="btn btn-default btn-decrypt">Decrypt</button>
 
         </form>
     </div>
@@ -48,55 +49,101 @@
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="node_modules/crypto-js/crypto-js.js"></script>
-<script src="node_modules/crypto-js/aes.js"></script>
+<script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="../node_modules/crypto-js/crypto-js.js"></script>
+<script src="../node_modules/crypto-js/aes.js"></script>
+
+<script src="../js/filecrypt.util.js"></script>
+<script src="../js/filecrypt.partcollection.js"></script>
+<script src="../js/filecrypt.js"></script>
 
 <script>
+
+    // https://github.com/STRML/securesha.re-client/blob/master/jquery-spaghetti/app/crypto.js
+
+    // Constants.
+    var CHUNK_SIZE = 1024 * 1024;
+    var CHUNK_DELIMITER = "/--delimiter--/";
+    var FILE_SIZE_LIMIT = CHUNK_SIZE * 2000;
+
+    var strFileName;
+    var strEncryptedFile;
+    var strFileContentType;
+
+    var objFileCrypt;
+
     $('input[type="file"]').on('change', function (e) {
 
-        var objFile = e.target.files[0],
-            intPartSize = 1024 * 1024,
-            intCountParts = Math.ceil(objFile.size / intPartSize);
+        var objFile = e.target.files[0];
 
-        var $objProgressBar = $(".progress-bar");
-        $objProgressBar.css("width", "0%");
-        $objProgressBar.html("0%");
-
-        $.ajaxSetup({async:true});
-
-        for(var intPart = 0; intPart < intCountParts; intPart++) {
-
-            var objBlob = objFile.slice(
-                intPart * intPartSize,
-                (intPart + 1) * intPartSize
+        if (objFile.size > FILE_SIZE_LIMIT) {
+            return alert(
+                "File is too big. Please choose a file under " +
+                FileSharer.convertFileSize(FILE_SIZE_LIMIT)
+                + "MB."
             );
-
-            var objFormData = new FormData();
-            objFormData.append('objFile', objBlob);
-            objFormData.append('part', intPart);
-            objFormData.append('name', objFile.name);
-
-            $.ajax({
-                type: 'POST',
-                url: '/upload.php',
-                data: objFormData,
-                dataType: "json",
-                processData: false,
-                contentType: false,
-                success: function (data) {
-
-                    var intComplite = Math.round((100 / intCountParts) * (intPart + 1));
-
-                    if (intComplite > 100) {
-                        intComplite = 100;
-                    }
-
-                    $objProgressBar.css("width", intComplite + "%");
-                    $objProgressBar.html(intComplite + "%");
-                }
-            });
         }
+
+        //objFileCrypt = new FileCrypt({
+        //    file: e.target.files[0],
+        //    password: 'Some Password',
+        //    delimiter: '/--delimiter--/'
+        //});
+
+        objFileCrypt = FileCrypt.factory(
+            e.target.files[0],
+            'Some Password'
+        );
+
+        debugger;
+
+//        strFileName = objFile.name;
+//        strFileContentType = objFile.type;
+//        strEncryptedFile = FileSharer.encrypt(
+//            FileSharer.sliceFile(e.target.files[0]),
+//            passphrase // must be dynamic
+//        );
+
+    });
+
+    $('.btn-crypt').on('click', function (e) {
+
+        objFileCrypt.save({
+            url: 'upload.php'
+        });
+
+//        $.ajax({
+//            url: 'upload.php',
+//            type: 'POST',
+//            //xhr: function() { // custom xhr
+//            //    var myXhr = $.ajaxSettings.xhr();
+//            //    if(myXhr.upload) { // check if upload property exists
+//            //        myXhr.upload.addEventListener('progress', progressHandler, false); // for handling the progress of the upload
+//            //    }
+//            //    return myXhr;
+//            //},
+//            contentType: 'text/plain',
+//            // success: successHandler,
+//            // error: errorHandler,
+//
+//            // Form data
+//            headers: {
+//                // 'X-File-Expiration-Days' : 10,
+//                // 'X-File-Max-Views': 15,
+//                'X-File-Content-Type': strFileContentType,
+//                'X-File-Name': strFileName
+//            },
+//            data: strEncryptedFile,
+//            processData: false,
+//            cache: false
+//        });
+    });
+
+    $('.btn-decrypt').on('click', function (e) {
+        // alert('decrypt');
+
+        FileCrypt.load('http://filecrypt.tut/securesha/dump.sql');
+
     });
 
 </script>
