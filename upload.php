@@ -27,7 +27,7 @@ if (isset ($GLOBALS["HTTP_RAW_POST_DATA"])) {
     $strSteam = _getRawBody();
 
     //write it
-    $fp = fopen("./{$strFileName}", 'wb');
+    $fp = fopen("./uploads/{$strFileName}", 'wb');
     fwrite($fp, $strSteam);
     fclose($fp);
 }

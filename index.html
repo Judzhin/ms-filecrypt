@@ -60,50 +60,28 @@
 
 <script>
 
-    // https://github.com/STRML/securesha.re-client/blob/master/jquery-spaghetti/app/crypto.js
+    var delimiter = '/--delimiter--/', password = 'Some Password', objFileCrypt;
 
-    // Constants.
-    var CHUNK_SIZE = 1024 * 1024;
-    var CHUNK_DELIMITER = "/--delimiter--/";
-    var FILE_SIZE_LIMIT = CHUNK_SIZE * 2000;
-
-    var strFileName;
-    var strEncryptedFile;
-    var strFileContentType;
-
-    var objFileCrypt;
+    var progressBar = function(per) {
+        $('.progress-bar').attr('aria-valuenow', per);
+        $('.progress-bar').css('width', per + '%');
+        $('.progress-bar').html(Math.round(per) + '%');
+    };
 
     $('input[type="file"]').on('change', function (e) {
 
-        var objFile = e.target.files[0];
+        progressBar(0);
 
-        if (objFile.size > FILE_SIZE_LIMIT) {
-            return alert(
-                "File is too big. Please choose a file under " +
-                FileSharer.convertFileSize(FILE_SIZE_LIMIT)
-                + "MB."
-            );
-        }
-
-        //objFileCrypt = new FileCrypt({
-        //    file: e.target.files[0],
-        //    password: 'Some Password',
-        //    delimiter: '/--delimiter--/'
-        //});
-
-        objFileCrypt = FileCrypt.factory(
-            e.target.files[0],
-            'Some Password'
-        );
-
-        // debugger;
-
-//        strFileName = objFile.name;
-//        strFileContentType = objFile.type;
-//        strEncryptedFile = FileSharer.encrypt(
-//            FileSharer.sliceFile(e.target.files[0]),
-//            passphrase // must be dynamic
-//        );
+        objFileCrypt = new FileCrypt({
+            file: e.target.files[0],
+            password: password,
+            delimiter: delimiter,
+            listeners: {
+                crypting: function(objOptions){
+                    progressBar(objOptions.process);
+                }
+            }
+        });
 
     });
 
@@ -146,6 +124,11 @@
         // alert('decrypt');
 
         debugger;
+
+        var objFileDecrypt = new FileDecrypt({
+            url: '',
+            password: password
+        });
 
         // FileCrypt.load('http://filecrypt.tut/securesha/dump.sql');
 

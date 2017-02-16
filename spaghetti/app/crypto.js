@@ -15,7 +15,7 @@ self.onmessage = function (oEvent) {
 
 function encrypt(oEvent){
 
-  debugger;
+  // debugger;
 
   // Read file
   var fileReader = new FileReaderSync();

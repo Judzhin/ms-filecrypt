@@ -17,11 +17,16 @@ var FileCrypt = function (objOptions) {
 FileCrypt.prototype = {
 
     DEFAULTS: {
+
         file: {},
         passphrase: '',
         chunk_size: 1024 * 1024, // 1MB
         delimiter: '/file-crypt-delimiter/',
-
+        listeners: {
+            crypting: function () {
+                // file event
+            }
+        },
         proxy: {
             url: '',
             type: 'POST',
@@ -49,14 +54,6 @@ FileCrypt.prototype = {
 
     /**
      *
-     * @returns {*|string|string}
-     */
-    getDelimiter: function () {
-        return this.options.delimiter;
-    },
-
-    /**
-     *
      * @param objBlobCollection
      * @param strPassphrase
      * @returns {FileCryptHashCollection}
@@ -64,7 +61,7 @@ FileCrypt.prototype = {
      */
     _encrypt: function (objBlobCollection, strPassphrase) {
 
-        var objCollection = new FileCryptHashCollection({
+        var objHashCollection = new FileCryptHashCollection({
             delimiter: this.options.delimiter
         });
 
@@ -74,15 +71,23 @@ FileCrypt.prototype = {
 
         var intCounter = 0;
 
-        objWorkerCollection.onSuccess(function (e) {
-            objCollection.add(e.data.data);
+        objWorkerCollection.onSuccess($.proxy(function (e) {
 
             ++intCounter;
 
-            if (intCounter === objBlobCollection.length) {
+            // fire event
+            this.options.listeners.crypting({
+                process: 100 / objBlobCollection.getLength() * intCounter
+            });
+
+            objHashCollection.add(e.data.data);
+
+
+            if (intCounter === objBlobCollection.getLength()) {
                 objWorkerCollection.terminate();
             }
-        });
+
+        }, this));
 
         objBlobCollection.forEach(function (objBlob, intIndex) {
             objWorkerCollection.getAt(intIndex % objWorkerCollection.getLength()).postMessage({
@@ -92,36 +97,7 @@ FileCrypt.prototype = {
             });
         });
 
-        // for (var intKey = 0; intKey < objBlobCollection.length; intKey++) {
-        //     objWorkerCollection.getAt(intKey % objWorkerCollection.getLength()).postMessage({
-        //         part: objBlobCollection[intKey],
-        //         index: intKey,
-        //         passphrase: strPassphrase
-        //     });
-        // }
-
-        return objCollection;
-
-        // for (var intKey = 0; intKey < arrBlobs.length; intKey++) {
-        //     var objFileReader = new FileReader(),
-        //     // var objFileReader = new FileReader(),
-        //         objData = objFileReader.readAsBinaryString(arrBlobs[intKey]);
-        //
-        //     // fileReader.readAsBinaryString(oEvent.data.slice)
-        //
-        //     debugger;
-        //
-        //     var objEncrypted = CryptoJS.AES
-        //         .encrypt(objData, strPassphrase)
-        //         .toString();
-        //     // .toString(Latin1Formatter);
-        //
-        //     // arrParts.push(objEncrypted);
-        //     objCollection.add(objEncrypted);
-        // }
-        //
-        // // return arrParts.join(CHUNK_DELIMITER);
-        // return objCollection; // arrParts.join(CHUNK_DELIMITER);
+        return objHashCollection;
     },
 
     /**
@@ -138,7 +114,7 @@ FileCrypt.prototype = {
                     'X-File-Content-Type': this.options.file.type,
                     'X-File-Name': this.options.file.name
                 },
-                data: this._encrypted.join()
+                data: this._encrypted.toString()
             }, this.options.proxy, objOptions
         );
 
@@ -156,48 +132,5 @@ FileCrypt.factory = function (objFile, strPassphrase) {
     return new this({
         file: objFile,
         passphrase: strPassphrase
-    });
-};
-
-/**
- *
- * @param strUrl
- * @param strSeparator
- */
-FileCrypt.load = function (strUrl, strSeparator) {
-
-    $.ajax({
-        url: strUrl,
-        type: 'GET',
-        success: $.proxy(function (response) {
-
-            var objFileCrypt = new this({
-                delimiter: strSeparator
-            });
-
-            var arrSlices = response.split(objFileCrypt.getDelimiter());
-            // 'Some Password'
-
-            var plaintexts = [];
-
-            for (var i = 0; i < arrSlices.length; i++) {
-                var bytes = CryptoJS.AES.decrypt(arrSlices[i], 'Some Password');
-                plaintexts.push(bytes.toString(CryptoJS.enc.Utf8));
-            }
-
-            debugger;
-
-            // var bytes  = CryptoJS.AES.decrypt(ciphertext.toString(), 'secret key 123');
-            // var plaintext = bytes.toString(CryptoJS.enc.Utf8);
-
-            // CryptoJS.AES.encrypt(objData, strPassphrase);
-
-            //
-            // var binaryData = arrSlices.join("");
-            // // var blob = new Blob([window.secureShared.str2ab(binaryData)], {type: fileMeta.contentType});
-
-            debugger;
-
-        }, this)
     });
 };
