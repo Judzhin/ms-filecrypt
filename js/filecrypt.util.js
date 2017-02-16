@@ -40,3 +40,4 @@ FileCryptUtil.str2ab = function (str) {
 
     return objBuf;
 };
+

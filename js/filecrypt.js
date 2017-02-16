@@ -1,3 +1,6 @@
+/*jshint worker:true*/
+/*global CryptoJS:true, FileReaderSync:true, Latin1Formatter:true, sjcl:true */
+
 /**
  * @access protected
  * @author Judzhin Miles <info[woof-woof]msbios.com>
@@ -41,7 +44,7 @@ FileCrypt.prototype = {
      *
      * @param objFile
      */
-    initComponent: function(objFile){
+    initComponent: function (objFile) {
         // Encrypter file blob parts
         this._encrypted = this._encrypt(
             this._sliceFile(objFile),
@@ -53,7 +56,7 @@ FileCrypt.prototype = {
      *
      * @returns {*|string|string}
      */
-    getDelimiter: function() {
+    getDelimiter: function () {
         return this.options.delimiter;
     },
 
@@ -84,27 +87,78 @@ FileCrypt.prototype = {
      * @returns {FileCryptPartCollection}
      * @private
      */
-    _encrypt: function(arrBlobs, strPassphrase) {
+    _encrypt: function (arrBlobs, strPassphrase) {
 
         var objCollection = new FileCryptPartCollection({
             delimiter: this.options.delimiter
         });
 
-        for(var intKey = 0; intKey < arrBlobs.length; intKey++) {
-            // var objFileReader = new FileReaderSync();
-            var objFileReader = new FileReader(),
-                objData = objFileReader.readAsBinaryString(arrBlobs[intKey]),
-                objEncrypted = CryptoJS.AES
-                    .encrypt(objData, strPassphrase)
-                    .toString();
-            // .toString(Latin1Formatter);
+        var objWorkerCollection = new FileCryptWorkerCollection();
+        objWorkerCollection.forEach($.proxy(function (e) {
 
-            // arrParts.push(objEncrypted);
-            objCollection.add(objEncrypted);
+            debugger;
+
+            objCollection.add(e.data.data);
+            // debugger;
+
+            // // received a slice.
+            //
+            // // if (_.isString(e.data)) {
+            // //     // message
+            // //     return console.log(e.data);
+            // // }
+            // // console.log(e.data.fileData.length);
+            //
+            // // onSlice(e);
+            // // total += e.data.fileData.length;
+            // intComplited++;
+            //
+            // // If finished
+            // // This seems brittle, if the last chunk finishes before another does, the upload will be considered
+            // // finished & the workers terminated.
+            // // FIXME: Check `total` === file.size
+            // if (intComplited === slices.length) {
+            //     // onEncryptFinished();
+            // }
+
+        }, this));
+
+        for (var intKey = 0; intKey < arrBlobs.length; intKey++) {
+            objWorkerCollection.getAt(intKey % objWorkerCollection.getLength())
+                .postMessage({
+                    part: arrBlobs[intKey],
+                    index: intKey
+                });
         }
 
-        // return arrParts.join(CHUNK_DELIMITER);
-        return objCollection; // arrParts.join(CHUNK_DELIMITER);
+        return objCollection;
+
+        // debugger;
+
+        // var objCollection = new FileCryptPartCollection({
+        //     delimiter: this.options.delimiter
+        // });
+        //
+        // for (var intKey = 0; intKey < arrBlobs.length; intKey++) {
+        //     var objFileReader = new FileReader(),
+        //     // var objFileReader = new FileReader(),
+        //         objData = objFileReader.readAsBinaryString(arrBlobs[intKey]);
+        //
+        //     // fileReader.readAsBinaryString(oEvent.data.slice)
+        //
+        //     debugger;
+        //
+        //     var objEncrypted = CryptoJS.AES
+        //         .encrypt(objData, strPassphrase)
+        //         .toString();
+        //     // .toString(Latin1Formatter);
+        //
+        //     // arrParts.push(objEncrypted);
+        //     objCollection.add(objEncrypted);
+        // }
+        //
+        // // return arrParts.join(CHUNK_DELIMITER);
+        // return objCollection; // arrParts.join(CHUNK_DELIMITER);
     },
 
     /**
@@ -112,7 +166,7 @@ FileCrypt.prototype = {
      * @param objOptions
      * @returns {*}
      */
-    save: function(objOptions){
+    save: function (objOptions) {
 
         var objSettings = $.extend({
                 headers: {
@@ -135,7 +189,7 @@ FileCrypt.prototype = {
  * @param strPassphrase
  * @returns {FileCrypt}
  */
-FileCrypt.factory = function(objFile, strPassphrase) {
+FileCrypt.factory = function (objFile, strPassphrase) {
     return new this({
         file: objFile,
         passphrase: strPassphrase
@@ -147,12 +201,12 @@ FileCrypt.factory = function(objFile, strPassphrase) {
  * @param strUrl
  * @param strSeparator
  */
-FileCrypt.load = function(strUrl, strSeparator){
+FileCrypt.load = function (strUrl, strSeparator) {
 
     $.ajax({
         url: strUrl,
         type: 'GET',
-        success: $.proxy(function(response) {
+        success: $.proxy(function (response) {
 
             var objFileCrypt = new this({
                 delimiter: strSeparator
@@ -163,8 +217,8 @@ FileCrypt.load = function(strUrl, strSeparator){
 
             var plaintexts = [];
 
-            for(var i = 0; i < arrSlices.length; i++) {
-                var bytes  = CryptoJS.AES.decrypt(arrSlices[i], 'Some Password');
+            for (var i = 0; i < arrSlices.length; i++) {
+                var bytes = CryptoJS.AES.decrypt(arrSlices[i], 'Some Password');
                 plaintexts.push(bytes.toString(CryptoJS.enc.Utf8));
             }
 

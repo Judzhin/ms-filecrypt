@@ -49,13 +49,14 @@
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="../node_modules/crypto-js/crypto-js.js"></script>
-<script src="../node_modules/crypto-js/aes.js"></script>
+<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="node_modules/crypto-js/crypto-js.js"></script>
+<script src="node_modules/crypto-js/aes.js"></script>
 
-<script src="../js/filecrypt.util.js"></script>
-<script src="../js/filecrypt.partcollection.js"></script>
-<script src="../js/filecrypt.js"></script>
+<script src="js/filecrypt.util.js"></script>
+<script src="js/filecrypt.workercollection.js"></script>
+<script src="js/filecrypt.partcollection.js"></script>
+<script src="js/filecrypt.js"></script>
 
 <script>
 
@@ -95,7 +96,7 @@
             'Some Password'
         );
 
-        debugger;
+        // debugger;
 
 //        strFileName = objFile.name;
 //        strFileContentType = objFile.type;
@@ -107,6 +108,8 @@
     });
 
     $('.btn-crypt').on('click', function (e) {
+
+        debugger;
 
         objFileCrypt.save({
             url: 'upload.php'
@@ -142,7 +145,9 @@
     $('.btn-decrypt').on('click', function (e) {
         // alert('decrypt');
 
-        FileCrypt.load('http://filecrypt.tut/securesha/dump.sql');
+        debugger;
+
+        // FileCrypt.load('http://filecrypt.tut/securesha/dump.sql');
 
     });
 
