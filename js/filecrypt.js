@@ -69,15 +69,15 @@ FileCrypt.prototype = {
     _sliceFile: function (objFile) {
 
         objFile.slice = objFile.mozSlice || objFile.webkitSlice || objFile.slice; // compatibility
-        var intPosition = 0, arrSlices = [];
+        var intPosition = 0, arrCollection = [];
 
         while (intPosition < objFile.size) {
-            arrSlices.push(objFile.slice(
-                intPosition, intPosition += CHUNK_SIZE
+            arrCollection.push(objFile.slice(
+                intPosition, intPosition += this.options.chunk_size
             ));
         }
 
-        return arrSlices;
+        return arrCollection;
     },
 
     /**
@@ -93,52 +93,32 @@ FileCrypt.prototype = {
             delimiter: this.options.delimiter
         });
 
-        var objWorkerCollection = new FileCryptWorkerCollection();
-        objWorkerCollection.forEach($.proxy(function (e) {
+        var objWorkerCollection = new FileCryptWorkerCollection({
+            count: arrBlobs.length
+        });
 
-            debugger;
+        var intCounter = 0;
 
+        objWorkerCollection.onSuccess(function (e) {
             objCollection.add(e.data.data);
-            // debugger;
 
-            // // received a slice.
-            //
-            // // if (_.isString(e.data)) {
-            // //     // message
-            // //     return console.log(e.data);
-            // // }
-            // // console.log(e.data.fileData.length);
-            //
-            // // onSlice(e);
-            // // total += e.data.fileData.length;
-            // intComplited++;
-            //
-            // // If finished
-            // // This seems brittle, if the last chunk finishes before another does, the upload will be considered
-            // // finished & the workers terminated.
-            // // FIXME: Check `total` === file.size
-            // if (intComplited === slices.length) {
-            //     // onEncryptFinished();
-            // }
+            ++intCounter;
 
-        }, this));
+            if (intCounter === arrBlobs.length) {
+                objWorkerCollection.terminate();
+            }
+        });
 
         for (var intKey = 0; intKey < arrBlobs.length; intKey++) {
-            objWorkerCollection.getAt(intKey % objWorkerCollection.getLength())
-                .postMessage({
-                    part: arrBlobs[intKey],
-                    index: intKey
-                });
+            objWorkerCollection.getAt(intKey % objWorkerCollection.getLength()).postMessage({
+                part: arrBlobs[intKey],
+                index: intKey,
+                passphrase: strPassphrase
+            });
         }
 
         return objCollection;
 
-        // debugger;
-
-        // var objCollection = new FileCryptPartCollection({
-        //     delimiter: this.options.delimiter
-        // });
-        //
         // for (var intKey = 0; intKey < arrBlobs.length; intKey++) {
         //     var objFileReader = new FileReader(),
         //     // var objFileReader = new FileReader(),

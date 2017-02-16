@@ -31,10 +31,19 @@ FileCryptPartCollection.prototype = {
 
     /**
      *
-     * @param BlobFile
+     * @param objBlobFile
+     * @param intIndex
+     * @returns {FileCryptPartCollection}
      */
-    add : function(BlobFile) {
-        this.items.push(BlobFile);
+    add : function(objBlobFile, intIndex) {
+
+        if (undefined !== intIndex) {
+            this.items[intIndex] = objBlobFile;
+        } else {
+            this.items.push(objBlobFile);
+        }
+
+        return this;
     },
 
     /**

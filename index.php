@@ -51,7 +51,6 @@
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="node_modules/crypto-js/crypto-js.js"></script>
-<script src="node_modules/crypto-js/aes.js"></script>
 
 <script src="js/filecrypt.util.js"></script>
 <script src="js/filecrypt.workercollection.js"></script>
