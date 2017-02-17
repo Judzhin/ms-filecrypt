@@ -54,56 +54,10 @@ FileDecrypt.prototype = {
      */
     process: function(objOptions) {
 
-        var objSetting = $.extend({}, this.options, objOptions);
-
         this._decrypt(
             this._blobCollection,
             this.options.passphrase
         );
-
-        //
-        // // Create blob
-        // var objBinaryData = objBlobCollection.toString(),
-        //     objBlob = new Blob(
-        //         [FileCryptUtil.str2ab(objBinaryData)],
-        //         {type: 'application/pdf'}
-        //     );
-        //
-        // var objFileReader = new FileReader(),
-        //     fnDecrypted = objSetting.listeners.decrypted;
-        //
-        // objFileReader.onload = function (event) {
-        //     fnDecrypted(event);
-        // };
-        //
-        // objFileReader.readAsDataURL(objBlob);
-    },
-
-    _onTerminateWorkers: function() {
-
-        // debugger;
-
-        // var objBlobCollection = this._decrypt(
-        //     this._blobCollection,
-        //     this.options.passphrase
-        // );
-
-        //
-        // // Create blob
-        // var objBinaryData = objBlobCollection.toString(),
-        //     objBlob = new Blob(
-        //         [FileCryptUtil.str2ab(objBinaryData)],
-        //         {type: 'application/pdf'}
-        //     );
-        //
-        // var objFileReader = new FileReader(),
-        //     fnDecrypted = objSetting.listeners.decrypted;
-        //
-        // objFileReader.onload = function (event) {
-        //     fnDecrypted(event);
-        // };
-        //
-        // objFileReader.readAsDataURL(objBlob);
     },
 
     /**
@@ -120,8 +74,6 @@ FileDecrypt.prototype = {
             listeners: {
                 terminate: $.proxy(function(objSelf, objBlobCollection) {
 
-                    debugger;
-
                     // Create blob
                     var objBinaryData = objBlobCollection.toString(),
                         objBlob = new Blob(
@@ -131,15 +83,12 @@ FileDecrypt.prototype = {
 
                     var objFileReader = new FileReader();
 
+
                     objFileReader.onload = function (e) {
-                        // fnDecrypted(event);
                         $(".btn-download").attr("href", e.target.result).hide().fadeIn();
                     };
 
                     objFileReader.readAsDataURL(objBlob);
-                    // debugger;
-
-
                 }, this)
             }
         });
