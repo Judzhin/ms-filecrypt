@@ -4,7 +4,7 @@
  */
 importScripts('/node_modules/crypto-js/crypto-js.js');
 importScripts('/node_modules/crypto-js/aes.js');
-importScripts('./formatters.js');
+importScripts('/src/formatters.js');
 
 /**
  *

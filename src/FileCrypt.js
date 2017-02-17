@@ -1,6 +1,3 @@
-/*jshint worker:true*/
-/*global CryptoJS:true, FileReaderSync:true, Latin1Formatter:true, sjcl:true */
-
 /**
  * @access protected
  * @author Judzhin Miles <info[woof-woof]msbios.com>
