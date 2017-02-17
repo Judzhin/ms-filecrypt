@@ -13,6 +13,10 @@ importScripts('/src/formatters.js');
 self.onmessage = function (e) {
 
     if (e.data instanceof Object) {
+
+
+        debugger;
+
         try {
 
             var strDecrypted = CryptoJS.AES

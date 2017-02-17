@@ -17,19 +17,29 @@ FileDecryptWorkerCollection.prototype = {
     DEFAULTS: {
 
         count: 4,
-        /**
-         *
-         * @param e
-         */
 
-        success: function (e) {
-        },
+        listeners: {
+            /**
+             *
+             * @param e
+             */
 
-        /**
-         *
-         * @param e
-         */
-        failure: function (e) {
+            success: function (e) {
+            },
+
+            /**
+             *
+             * @param e
+             */
+            failure: function (e) {
+            },
+
+            /**
+             *
+             * @param objCollection
+             */
+            terminate: function(objCollection) {
+            }
         }
     },
 
@@ -42,11 +52,11 @@ FileDecryptWorkerCollection.prototype = {
 
         for (var i = 0; i < intCounter; i++) {
             var objWorker = new Worker("/src/worker.decrypt.js");
-            objWorker.onError = this.options.failure;
+            objWorker.onError = this.options.listeners.failure;
             this.items.push(objWorker);
         }
 
-        this.onSuccess(this.options.success);
+        this.onSuccess(this.options.listeners.success);
     },
 
     /**
@@ -97,13 +107,16 @@ FileDecryptWorkerCollection.prototype = {
 
     /**
      *
-     * @returns {FileCryptWorkerCollection}
+     * @param objBlobCollection
+     * @returns {FileDecryptWorkerCollection}
      */
-    terminate: function() {
+    terminate: function(objBlobCollection) {
 
         this._forEach(function(objWorker){
             objWorker.terminate();
         });
+
+        this.options.listeners.terminate(this, objBlobCollection);
 
         return this;
     }

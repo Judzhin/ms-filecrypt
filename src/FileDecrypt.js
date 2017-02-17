@@ -40,31 +40,70 @@ FileDecrypt.prototype = {
             type: 'GET',
             success: $.proxy(function (response) {
 
-                var objBlobCollection = this._decrypt(
-                    new FileCryptHashCollection({
-                        items: response.split(this.options.delimiter)
-                    }),
-                    this.options.passphrase
-                );
-
-                // Create blob
-                var objBinaryData = objBlobCollection.toString(); // .  // decryptedFile.fileData.join("");
-                var objBlob = new Blob(
-                    [FileCryptUtil.str2ab(objBinaryData)],
-                    {type: 'application/pdf'}
-                );
-
-                var objFileReader = new FileReader();
-                var fnSuccess = this.options.listeners.success;
-
-                objFileReader.onload = function (event) {
-                    fnSuccess(event);
-                };
-
-                objFileReader.readAsDataURL(objBlob);
+                this._blobCollection = new FileCryptHashCollection({
+                    items: response.split(this.options.delimiter)
+                });
 
             }, this)
         });
+    },
+
+    /**
+     *
+     * @param objOptions
+     */
+    process: function(objOptions) {
+
+        var objSetting = $.extend({}, this.options, objOptions);
+
+        this._decrypt(
+            this._blobCollection,
+            this.options.passphrase
+        );
+
+        //
+        // // Create blob
+        // var objBinaryData = objBlobCollection.toString(),
+        //     objBlob = new Blob(
+        //         [FileCryptUtil.str2ab(objBinaryData)],
+        //         {type: 'application/pdf'}
+        //     );
+        //
+        // var objFileReader = new FileReader(),
+        //     fnDecrypted = objSetting.listeners.decrypted;
+        //
+        // objFileReader.onload = function (event) {
+        //     fnDecrypted(event);
+        // };
+        //
+        // objFileReader.readAsDataURL(objBlob);
+    },
+
+    _onTerminateWorkers: function() {
+
+        // debugger;
+
+        // var objBlobCollection = this._decrypt(
+        //     this._blobCollection,
+        //     this.options.passphrase
+        // );
+
+        //
+        // // Create blob
+        // var objBinaryData = objBlobCollection.toString(),
+        //     objBlob = new Blob(
+        //         [FileCryptUtil.str2ab(objBinaryData)],
+        //         {type: 'application/pdf'}
+        //     );
+        //
+        // var objFileReader = new FileReader(),
+        //     fnDecrypted = objSetting.listeners.decrypted;
+        //
+        // objFileReader.onload = function (event) {
+        //     fnDecrypted(event);
+        // };
+        //
+        // objFileReader.readAsDataURL(objBlob);
     },
 
     /**
@@ -77,7 +116,32 @@ FileDecrypt.prototype = {
     _decrypt: function (objHashCollection, strPassphrase) {
 
         var objWorkerCollection = new FileDecryptWorkerCollection({
-            count: objHashCollection.getLength()
+            count: objHashCollection.getLength(),
+            listeners: {
+                terminate: $.proxy(function(objSelf, objBlobCollection) {
+
+                    debugger;
+
+                    // Create blob
+                    var objBinaryData = objBlobCollection.toString(),
+                        objBlob = new Blob(
+                            [FileCryptUtil.str2ab(objBinaryData)],
+                            {type: 'application/pdf'}
+                        );
+
+                    var objFileReader = new FileReader();
+
+                    objFileReader.onload = function (e) {
+                        // fnDecrypted(event);
+                        $(".btn-download").attr("href", e.target.result).hide().fadeIn();
+                    };
+
+                    objFileReader.readAsDataURL(objBlob);
+                    // debugger;
+
+
+                }, this)
+            }
         });
 
         var intCounter = 0, objBlobCollection = new FileDecryptBlobCollection();
@@ -86,21 +150,20 @@ FileDecrypt.prototype = {
 
             ++intCounter;
 
-            // fire event
-            this.options.listeners.decrypting({
-                process: 100 / objHashCollection.getLength() * intCounter
-            });
-
-            objBlobCollection.add(
-                e.data.part,
-                e.data.index
-            );
+            if (e.data.success) {
+                objBlobCollection.add(
+                    e.data.part,
+                    e.data.index
+                );
+            }
 
             if (intCounter === objHashCollection.getLength()) {
-                objWorkerCollection.terminate();
+                objWorkerCollection.terminate(objBlobCollection);
             }
 
         }, this));
+
+        debugger;
 
         objHashCollection.forEach(function (objHash, intIndex) {
             objWorkerCollection.getAt(intIndex % objWorkerCollection.getLength()).postMessage({
@@ -111,32 +174,5 @@ FileDecrypt.prototype = {
         });
 
         return objBlobCollection;
-    },
-
-    // /**
-    //  *
-    //  * @param fn
-    //  */
-    // load: function (fn) {
-    //
-    //
-    //
-    //     // if(!/Safari/i.test(window.BrowserDetect.browser)){
-    //     //     var URL = window.URL || window.webkitURL;
-    //     //     var url = URL.createObjectURL(blob);
-    //     //     $("<a>").attr("href", url).attr("download", decryptedFile.fileName).addClass("btn btn-success")
-    //     //         .html('<i class="icon-download-alt icon-white"></i> Download').appendTo("#downloaded-content").hide().fadeIn();
-    //     // } else {
-    //     //     // Safari can't open blobs, create a data URI
-    //     //     // This will fail if the file is greater than ~200KB or so
-    //     //     // TODO figure out what's wrong with the blob size in safari
-    //     //     // TODO Why doesn't safari want a dataview here?
-    //     //     if(blob.size > 200000) return window.alert("Sorry, this file is too big for Safari. Please try to open it in Chrome.");
-    //     //     var fileReader = new FileReader();
-    //     //     fileReader.onload = function (event) {
-    //     //         $("<a>").text("Download").appendTo("#downloaded-content").attr("href", event.target.result).hide().fadeIn();
-    //     //     };
-    //     //     fileReader.readAsDataURL(blob);
-    //     // }
-    // }
+    }
 };

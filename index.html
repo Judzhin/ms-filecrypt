@@ -40,7 +40,9 @@
             </div>
 
             <button type="button" class="btn btn-default btn-crypt">Crypt</button>
+            <button type="button" class="btn btn-default btn-load">Load</button>
             <button type="button" class="btn btn-default btn-decrypt">Decrypt</button>
+            <button type="button" class="btn btn-default btn-result">Result</button>
             <a href="#" class="btn btn-download">Download</a>
 
         </form>
@@ -96,24 +98,57 @@
         });
     });
 
-    $('.btn-decrypt').on('click', function (e) {
+    var objFileDecrypt;
 
-        var objFileDecrypt = new FileDecrypt({
+    $('.btn-load').on('click', function (e) {
+
+        objFileDecrypt = new FileDecrypt({
             url: 'http://filecrypt.tut/uploads/11.lorem.pdf.bin',
             passphrase: password,
             listeners: {
-                success: function (e) {
-                    $(".btn-download").attr("href", e.target.result).fadeIn();
-                },
+                loaded: function() {
 
-                decrypting: function () {
-                    // debugger;
                 }
             }
         });
+    });
 
-//        objFileDecrypt.load(function (e) {
-//            $(".btn-download").attr("href", e.target.result).fadeIn();
+    $('.btn-decrypt').on('click', function (e) {
+
+        progressBar(0);
+
+        objFileDecrypt.process({
+            passphrase: password,
+//            listeners: {
+//
+//                decrypting: function(objOptions) {
+//                    progressBar(objOptions.process);
+//                },
+//
+//                decrypted: function(e){
+//                    $(".btn-download").attr("href", e.target.result).hide().fadeIn();
+//                }
+//            }
+        });
+    });
+
+    $('.btn-result').on('click', function (e) {
+
+
+        debugger;
+
+//        objFileDecrypt.process({
+//            passphrase: password,
+//            listeners: {
+//
+//                decrypting: function(objOptions) {
+//                    progressBar(objOptions.process);
+//                },
+//
+//                decrypted: function(e){
+//                    $(".btn-download").attr("href", e.target.result).hide().fadeIn();
+//                }
+//            }
 //        });
     });
 
