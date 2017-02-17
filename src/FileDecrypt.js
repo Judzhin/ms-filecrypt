@@ -20,13 +20,12 @@ FileDecrypt.prototype = {
         url: '',
         passphrase: '',
         delimiter: '/file-crypt-delimiter/',
-        // proxy: {
-        //     url: '',
-        //     type: 'GET',
-        //     contentType: 'text/plain',
-        //     processData: false,
-        //     cache: false
-        // }
+        listeners: {
+            download: function () {
+            },
+            decrypting: function () {
+            }
+        }
     },
 
     /**
@@ -36,84 +35,108 @@ FileDecrypt.prototype = {
      */
     _initComponent: function (strUrl) {
 
-        // this._decrypted = undefined;
-
         $.ajax({
             url: strUrl,
             type: 'GET',
             success: $.proxy(function (response) {
 
-                // var objFileCrypt = new this({
-                //     delimiter: strSeparator
-                // });
-                //
-                // var arrSlices = response.split(objFileCrypt.getDelimiter());
-                // // 'Some Password'
-                //
-                // var plaintexts = [];
-                //
-                // for (var i = 0; i < arrSlices.length; i++) {
-                //     var bytes = CryptoJS.AES.decrypt(arrSlices[i], 'Some Password');
-                //     plaintexts.push(bytes.toString(CryptoJS.enc.Utf8));
-                // }
-                //
-                // debugger;
-                //
-                // // var bytes  = CryptoJS.AES.decrypt(ciphertext.toString(), 'secret key 123');
-                // // var plaintext = bytes.toString(CryptoJS.enc.Utf8);
-                //
-                // // CryptoJS.AES.encrypt(objData, strPassphrase);
-                //
-                // //
-                // // var binaryData = arrSlices.join("");
-                // // // var blob = new Blob([window.secureShared.str2ab(binaryData)], {type: fileMeta.contentType});
-                //
-                // debugger;
+                var objBlobCollection = this._decrypt(
+                    new FileCryptHashCollection({
+                        items: response.split(this.options.delimiter)
+                    }),
+                    this.options.passphrase
+                );
+
+                // Create blob
+                var objBinaryData = objBlobCollection.toString(); // .  // decryptedFile.fileData.join("");
+                var objBlob = new Blob(
+                    [FileCryptUtil.str2ab(objBinaryData)],
+                    {type: 'application/pdf'}
+                );
+
+                var objFileReader = new FileReader();
+                var fnSuccess = this.options.listeners.success;
+
+                objFileReader.onload = function (event) {
+                    fnSuccess(event);
+                };
+
+                objFileReader.readAsDataURL(objBlob);
 
             }, this)
         });
-    }
-};
+    },
 
-// /**
-//  *
-//  * @param strUrl
-//  * @param strSeparator
-//  */
-// FileCrypt.load = function (strUrl, strSeparator) {
-//
-//     $.ajax({
-//         url: strUrl,
-//         type: 'GET',
-//         success: $.proxy(function (response) {
-//
-//             var objFileCrypt = new this({
-//                 delimiter: strSeparator
-//             });
-//
-//             var arrSlices = response.split(objFileCrypt.getDelimiter());
-//             // 'Some Password'
-//
-//             var plaintexts = [];
-//
-//             for (var i = 0; i < arrSlices.length; i++) {
-//                 var bytes = CryptoJS.AES.decrypt(arrSlices[i], 'Some Password');
-//                 plaintexts.push(bytes.toString(CryptoJS.enc.Utf8));
-//             }
-//
-//             debugger;
-//
-//             // var bytes  = CryptoJS.AES.decrypt(ciphertext.toString(), 'secret key 123');
-//             // var plaintext = bytes.toString(CryptoJS.enc.Utf8);
-//
-//             // CryptoJS.AES.encrypt(objData, strPassphrase);
-//
-//             //
-//             // var binaryData = arrSlices.join("");
-//             // // var blob = new Blob([window.secureShared.str2ab(binaryData)], {type: fileMeta.contentType});
-//
-//             debugger;
-//
-//         }, this)
-//     });
-// };
+    /**
+     *
+     * @param objHashCollection
+     * @param strPassphrase
+     * @returns {FileDecryptBlobCollection}
+     * @private
+     */
+    _decrypt: function (objHashCollection, strPassphrase) {
+
+        var objWorkerCollection = new FileDecryptWorkerCollection({
+            count: objHashCollection.getLength()
+        });
+
+        var intCounter = 0, objBlobCollection = new FileDecryptBlobCollection();
+
+        objWorkerCollection.onSuccess($.proxy(function (e) {
+
+            ++intCounter;
+
+            // fire event
+            this.options.listeners.decrypting({
+                process: 100 / objHashCollection.getLength() * intCounter
+            });
+
+            objBlobCollection.add(
+                e.data.part,
+                e.data.index
+            );
+
+            if (intCounter === objHashCollection.getLength()) {
+                objWorkerCollection.terminate();
+            }
+
+        }, this));
+
+        objHashCollection.forEach(function (objHash, intIndex) {
+            objWorkerCollection.getAt(intIndex % objWorkerCollection.getLength()).postMessage({
+                hash: objHash,
+                index: intIndex,
+                passphrase: strPassphrase
+            });
+        });
+
+        return objBlobCollection;
+    },
+
+    // /**
+    //  *
+    //  * @param fn
+    //  */
+    // load: function (fn) {
+    //
+    //
+    //
+    //     // if(!/Safari/i.test(window.BrowserDetect.browser)){
+    //     //     var URL = window.URL || window.webkitURL;
+    //     //     var url = URL.createObjectURL(blob);
+    //     //     $("<a>").attr("href", url).attr("download", decryptedFile.fileName).addClass("btn btn-success")
+    //     //         .html('<i class="icon-download-alt icon-white"></i> Download').appendTo("#downloaded-content").hide().fadeIn();
+    //     // } else {
+    //     //     // Safari can't open blobs, create a data URI
+    //     //     // This will fail if the file is greater than ~200KB or so
+    //     //     // TODO figure out what's wrong with the blob size in safari
+    //     //     // TODO Why doesn't safari want a dataview here?
+    //     //     if(blob.size > 200000) return window.alert("Sorry, this file is too big for Safari. Please try to open it in Chrome.");
+    //     //     var fileReader = new FileReader();
+    //     //     fileReader.onload = function (event) {
+    //     //         $("<a>").text("Download").appendTo("#downloaded-content").attr("href", event.target.result).hide().fadeIn();
+    //     //     };
+    //     //     fileReader.readAsDataURL(blob);
+    //     // }
+    // }
+};

@@ -1,5 +1,7 @@
 <?php
 
+ini_set('always_populate_raw_post_data', -1);
+
 /**
  * Return the raw body of the request
  *
@@ -27,7 +29,7 @@ if (isset ($GLOBALS["HTTP_RAW_POST_DATA"])) {
     $strSteam = _getRawBody();
 
     //write it
-    $fp = fopen("./uploads/{$strFileName}", 'wb');
+    $fp = fopen("./uploads/{$strFileName}.bin", 'wb');
     fwrite($fp, $strSteam);
     fclose($fp);
 }

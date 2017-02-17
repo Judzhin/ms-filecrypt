@@ -4,7 +4,7 @@
  * @param objOptions
  * @constructor
  */
-var FileCryptHashCollection = function(objOptions) {
+var FileDecryptBlobCollection = function(objOptions) {
     this.options = $.extend({}, this.DEFAULTS, objOptions);
 
     // Default properties
@@ -14,11 +14,10 @@ var FileCryptHashCollection = function(objOptions) {
     this._initComponent(this.options.items);
 };
 
-FileCryptHashCollection.prototype = {
+FileDecryptBlobCollection.prototype = {
 
     DEFAULTS: {
-        items: [],
-        delimiter: "/--delimiter--/"
+        items: []
     },
 
     /**
@@ -66,12 +65,13 @@ FileCryptHashCollection.prototype = {
 
         return this;
     }
+
 };
 
 /**
  *
  * @returns {string}
  */
-FileCryptHashCollection.prototype.toString = function() {
-    return this.items.join(this.options.delimiter);
+FileDecryptBlobCollection.prototype.toString = function() {
+    return this.items.join("");
 };

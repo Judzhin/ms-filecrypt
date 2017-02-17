@@ -80,7 +80,10 @@ FileCrypt.prototype = {
                 process: 100 / objBlobCollection.getLength() * intCounter
             });
 
-            objHashCollection.add(e.data.data);
+            objHashCollection.add(
+                e.data.data,
+                e.data.index
+            );
 
 
             if (intCounter === objBlobCollection.getLength()) {

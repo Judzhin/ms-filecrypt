@@ -4,6 +4,7 @@
  */
 importScripts('/node_modules/crypto-js/crypto-js.js');
 importScripts('/node_modules/crypto-js/aes.js');
+importScripts('/src/formatters.js');
 
 /**
  *
@@ -20,7 +21,7 @@ self.onmessage = function (e) {
                     objFileReader.readAsBinaryString(e.data.part),
                     e.data.passphrase
                 )
-                .toString();
+                .toString(Latin1Formatter);
 
         postMessage({
             data: strEncrypted,
