@@ -25,10 +25,8 @@ var Latin1Formatter = {
     } else {
       wordArray = ciphertext;
     }
-    var output = wordArray.toString(CryptoJS.enc.Latin1);
 
-    //return lzw_encode(output);
-    return output;
+    return wordArray.toString(CryptoJS.enc.Latin1);
   },
 
   /**
@@ -41,7 +39,6 @@ var Latin1Formatter = {
    */
   parse: function (str) {
     // Parse base64
-    //var ciphertext = CryptoJS.enc.Latin1.parse(lzw_decode(str)), salt;
     var ciphertext = CryptoJS.enc.Latin1.parse(str), salt;
 
     // Test for salt

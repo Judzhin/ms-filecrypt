@@ -4,7 +4,7 @@
  */
 importScripts('/node_modules/crypto-js/crypto-js.js');
 importScripts('/node_modules/crypto-js/aes.js');
-importScripts('./formatters.js');
+importScripts('./FileLatin1Formatter.js');
 
 /**
  *
@@ -14,14 +14,11 @@ self.onmessage = function (e) {
 
     if (e.data instanceof Object) {
 
-
-        debugger;
-
         try {
 
             var strDecrypted = CryptoJS.AES
                 .decrypt(
-                    Latin1Formatter.parse(e.data.hash),
+                    FileLatin1Formatter.parse(e.data.hash),
                     e.data.passphrase
                 ).toString(CryptoJS.enc.Utf8);
 

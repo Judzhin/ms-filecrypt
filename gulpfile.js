@@ -24,6 +24,7 @@ gulp.task('js', function () {
 
 gulp.task('copy', function () {
     return gulp.src([
+        './src/FileLatin1Formatter.js',
         './src/formatters.js',
         './src/worker.*.js'
     ])
