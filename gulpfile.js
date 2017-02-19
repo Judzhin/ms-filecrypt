@@ -1,7 +1,11 @@
 var gulp = require('gulp'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglifyjs'),
-    copy = require('gulp-contrib-copy');
+    copy = require('gulp-contrib-copy'),
+    less = require('gulp-less'),
+    path = require('path'),
+    LessAutoprefix = require('less-plugin-autoprefix'),
+    autoprefix = new LessAutoprefix({ browsers: ['last 2 versions'] });
 
 gulp.task('js', function () {
     return gulp.src([
@@ -18,12 +22,6 @@ gulp.task('js', function () {
         .pipe(gulp.dest('./dist/js'));
 });
 
-gulp.task('uglify', function () {
-    return gulp.src('./dist/js/filecrypt.js')
-        .pipe(uglify('filecrypt.min.js'))
-        .pipe(gulp.dest('./dist/js'));
-});
-
 gulp.task('copy', function () {
     return gulp.src([
         './src/formatters.js',
@@ -33,5 +31,23 @@ gulp.task('copy', function () {
         .pipe(gulp.dest('./dist/js'));
 });
 
+gulp.task('less', function () {
+    return gulp.src('./less/**/*.less')
+        .pipe(less({
+            paths: [
+                path.join(__dirname, 'less', 'includes')
+            ],
+            plugins: [autoprefix]
+        }))
+        .pipe(gulp.dest('./dist/css'));
+});
 
-gulp.task('default', ['js', 'uglify', 'copy']);
+gulp.task('uglify-js', function () {
+    return gulp.src('./dist/js/filecrypt.js')
+        .pipe(uglify('filecrypt.min.js'))
+        .pipe(gulp.dest('./dist/js'));
+});
+
+gulp.task('default',
+    ['js', 'uglify-js', 'copy', 'less']
+);

@@ -4,6 +4,7 @@
  * @type {{stringify: Latin1Formatter.stringify, parse: Latin1Formatter.parse}}
  */
 var Latin1Formatter = {
+
   /**
    * Converts a cipher params object to an OpenSSL-style string using Latin1
    *
