@@ -39,9 +39,7 @@
         <div class="content if-decrypt">
             <h1>Choose which file to decrypt</h1>
             <h2>Only files encrypted by this tool are accepted.</h2>
-            <a class="button browse blue">Browse</a>
-
-            <input type="file" id="decrypt-input"/>
+            <a data-filename="dump.sql" class="button browse blue btn-decrypt">Download</a>
         </div>
 
     </div>
@@ -71,19 +69,29 @@
     <div id="step4">
 
         <div class="content">
-            <h1>Your file is ready!</h1>
-            <a class="button download green">Download</a>
+            <h1>Your file is crypted!</h1>
         </div>
 
+    </div>
+
+    <div id="step5">
+        <div class="content">
+            <h1>Enter the pass phrase</h1>
+            <h2>Enter the pass phrase that was used to encrypt this file. It is not possible to decrypt it without it.</h2>
+            <input type="password"/>
+            <a class="button decrypting blue">Decrypt file!</a>
+            <a href="" class="button green btn-download-decript-file">Download</a>
+
+        </div>
     </div>
 </div>
 
 </body>
 
-<!-- Include the AES algorithm of the crypto library -->
-<script src="assets/js/aes.js"></script>
-
 <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="dist/js/script.js"></script>
+<script src="node_modules/crypto-js/crypto-js.js"></script>
+
+<script src="dist/js/filecrypt.js"></script>
+<script src="js/script.js"></script>
 
 </html>

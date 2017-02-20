@@ -11,7 +11,9 @@ var FileDecrypt = function (objOptions) {
     this.options = $.extend({}, this.DEFAULTS, objOptions);
 
     // Constructor
-    this._initComponent(this.options.url);
+    this._initComponent(
+        this.options.url
+    );
 };
 
 FileDecrypt.prototype = {
@@ -21,11 +23,79 @@ FileDecrypt.prototype = {
         passphrase: '',
         delimiter: '/file-crypt-delimiter/',
         listeners: {
-            download: function () {
+            download: function (e) {
             },
-            decrypting: function () {
+            downloaded: function(e) {
+            },
+            decrypting: function (e) {
+            },
+            decripted: function(e) {
+
             }
         }
+    },
+
+    /**
+     *
+     * @param strUrl
+     * @returns {FileDecrypt}
+     */
+    setUrl: function(strUrl) {
+        this.options.url = strUrl;
+        return this;
+    },
+
+    /**
+     *
+     * @param strPassphrase
+     * @returns {FileDecrypt}
+     */
+    setPassphrase: function(strPassphrase) {
+        this.options.passphrase = strPassphrase;
+        return this;
+    },
+
+    /**
+     *
+     * @param delimiter
+     */
+    setDelimiter: function(delimiter) {
+        this.options.delimiter = delimiter;
+    },
+
+    /**
+     *
+     * @returns {*|string|string}
+     */
+    getFileName: function() {
+        return this.fileName;
+    },
+
+    /**
+     *
+     */
+    download: function() {
+
+        $.ajax({
+            url: this.options.url,
+            type: 'GET',
+            success: $.proxy(function (response, textStatus, jqXHR) {
+
+                this.fileName = jqXHR.getResponseHeader('X-File-Name');
+                this.fileContentType = jqXHR.getResponseHeader('X-File-Content-Type');
+                this.fileContentLength = jqXHR.getResponseHeader('X-File-Content-Length');
+
+                this._blobCollection = new FileCryptHashCollection({
+                    items: response.split(this.options.delimiter)
+                });
+
+                if ('downloaded' in this.options.listeners
+                    && $.isFunction(this.options.listeners['downloaded'])) {
+                    this.options.listeners.downloaded();
+                }
+
+            }, this)
+        });
     },
 
     /**
@@ -35,24 +105,26 @@ FileDecrypt.prototype = {
      */
     _initComponent: function (strUrl) {
 
-        $.ajax({
-            url: strUrl,
-            type: 'GET',
-            success: $.proxy(function (response) {
+        if (!strUrl) {
+            return;
+        }
 
-                this._blobCollection = new FileCryptHashCollection({
-                    items: response.split(this.options.delimiter)
-                });
-
-            }, this)
-        });
+        this.setUrl(strUrl);
+        this.download();
     },
 
     /**
      *
      * @param objOptions
      */
-    process: function(objOptions) {
+    decrypting: function(objOptions) {
+
+        if($.isPlainObject(objOptions)) {
+
+            if ('decripted' in objOptions && $.isFunction(objOptions['decripted'])) {
+                this.options.listeners.decripted = objOptions['decripted'];
+            }
+        }
 
         this._decrypt(
             this._blobCollection,
@@ -78,16 +150,11 @@ FileDecrypt.prototype = {
                     var objBinaryData = objBlobCollection.toString(),
                         objBlob = new Blob(
                             [FileCryptUtil.str2ab(objBinaryData)],
-                            {type: 'application/pdf'}
+                            {type: this.fileContentType}
                         );
 
                     var objFileReader = new FileReader();
-
-
-                    objFileReader.onload = function (e) {
-                        $(".btn-download").attr("href", e.target.result).hide().fadeIn();
-                    };
-
+                    objFileReader.onload = this.options.listeners.decripted;
                     objFileReader.readAsDataURL(objBlob);
                 }, this)
             }
@@ -98,6 +165,8 @@ FileDecrypt.prototype = {
         objWorkerCollection.onSuccess($.proxy(function (e) {
 
             ++intCounter;
+
+            console.log(e.data);
 
             if (e.data.success) {
                 objBlobCollection.add(
@@ -111,8 +180,6 @@ FileDecrypt.prototype = {
             }
 
         }, this));
-
-        debugger;
 
         objHashCollection.forEach(function (objHash, intIndex) {
             objWorkerCollection.getAt(intIndex % objWorkerCollection.getLength()).postMessage({

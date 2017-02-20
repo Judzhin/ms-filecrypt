@@ -8,7 +8,10 @@ var FileCrypt = function (objOptions) {
     this.options = $.extend({}, this.DEFAULTS, objOptions);
 
     // Constructor
-    this._initComponent(this.options.file);
+    this._initComponent(
+        this.options.file,
+        this.options.passphrase
+    );
 };
 
 FileCrypt.prototype = {
@@ -21,6 +24,9 @@ FileCrypt.prototype = {
         delimiter: '/file-crypt-delimiter/',
         listeners: {
             crypting: function () {
+                // file event
+            },
+            crypted: function() {
                 // file event
             }
         },
@@ -36,17 +42,86 @@ FileCrypt.prototype = {
     /**
      *
      * @param objFile
-     * @private
+     * @returns {FileCrypt}
      */
-    _initComponent: function (objFile) {
+    setFile: function(objFile) {
+        this.options.file = objFile;
+        return this;
+    },
+
+    /**
+     *
+     * @param strPassphrase
+     * @returns {FileCrypt}
+     */
+    setPassphrase: function(strPassphrase) {
+        this.options.passphrase = strPassphrase;
+        return this;
+    },
+
+    /**
+     *
+     * @param intChunkSize
+     * @returns {FileCrypt}
+     */
+    setChunkSize: function(intChunkSize) {
+        this.options.options.chunk_size = intChunkSize;
+        return this;
+    },
+
+    /**
+     *
+     * @returns {*}
+     */
+    getFileName: function() {
+        return this.options.file.name;
+    },
+
+    /**
+     *
+     * @param fn
+     */
+    encrypting: function(fn) {
+
+        if ($.isFunction(fn)) {
+            this.options.listeners.crypting = fn;
+        } else if($.isPlainObject(fn)) {
+
+            if ('crypting' in fn && $.isFunction(fn['crypting'])) {
+                this.options.listeners.crypting = fn['crypting'];
+            }
+
+            if ('crypted' in fn && $.isFunction(fn['crypted'])) {
+                this.options.listeners.crypted = fn['crypted'];
+            }
+        }
 
         this._encrypted = this._encrypt(
             new FileCryptBlobCollection({
-                file: objFile,
+                file: this.options.file,
                 chunk_size: this.options.chunk_size
             }),
             this.options.passphrase
         );
+
+        return this;
+    },
+
+    /**
+     *
+     * @param objFile
+     * @param strPassphrase
+     * @private
+     */
+    _initComponent: function (objFile, strPassphrase) {
+
+        if (!objFile || !strPassphrase) {
+            return;
+        }
+
+        this.setFile(objFile);
+        this.setPassphrase(strPassphrase);
+        this.encrypting();
     },
 
     /**
@@ -63,7 +138,10 @@ FileCrypt.prototype = {
         });
 
         var objWorkerCollection = new FileCryptWorkerCollection({
-            count: objBlobCollection.getLength()
+            count: objBlobCollection.getLength(),
+            listeners: {
+                terminate: this.options.listeners.crypted
+            }
         });
 
         var intCounter = 0;
@@ -82,9 +160,8 @@ FileCrypt.prototype = {
                 e.data.index
             );
 
-
             if (intCounter === objBlobCollection.getLength()) {
-                objWorkerCollection.terminate();
+                objWorkerCollection.terminate(objHashCollection);
             }
 
         }, this));
@@ -109,8 +186,7 @@ FileCrypt.prototype = {
 
         var objSettings = $.extend({
                 headers: {
-                    // 'X-File-Expiration-Days' : 10,
-                    // 'X-File-Max-Views': 15,
+                    'X-File-Content-Length': this.options.file.size,
                     'X-File-Content-Type': this.options.file.type,
                     'X-File-Name': this.options.file.name
                 },

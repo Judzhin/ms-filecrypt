@@ -126,7 +126,7 @@ body.decrypt .if-decrypt {
 }
 .button::before {
   content: '';
-  background: url(http://demo.tutorialzine.com/2013/11/javascript-file-encrypter/assets/img/icons.svg) no-repeat;
+  background: url('../img/icons.svg') no-repeat;
   display: inline-block;
   width: 32px;
   height: 32px;
@@ -185,7 +185,8 @@ body.decrypt #step2 {
 #step3 {
   background-color: #d5d788;
 }
-#step3 input[type=password] {
+#step3 input[type=password],
+#step5 input[type=password] {
   background-color: #fff;
   border: none;
   padding: 8px 18px;
@@ -203,6 +204,9 @@ body.decrypt #step2 {
 #step4 {
   background-color: #aa8cd8;
 }
+#step5 {
+  background-color: #d87b6d;
+}
 #step1 .content {
   margin-top: -140px;
 }
@@ -213,5 +217,8 @@ body.decrypt #step2 {
   margin-top: -157px;
 }
 #step4 .content {
+  margin-top: -100px;
+}
+#step5 .content {
   margin-top: -100px;
 }

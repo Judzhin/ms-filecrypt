@@ -32,4 +32,12 @@ if (isset ($GLOBALS["HTTP_RAW_POST_DATA"])) {
     $fp = fopen("./uploads/{$strFileName}.bin", 'wb');
     fwrite($fp, $strSteam);
     fclose($fp);
+
+    $fm = fopen("./uploads/{$strFileName}.json", 'wb');
+    fwrite($fm, json_encode([
+        'X-File-Content-Length' => $_SERVER['HTTP_X_FILE_CONTENT_LENGTH'],
+        'X-File-Name' => $_SERVER['HTTP_X_FILE_NAME'],
+        'X-File-Content-Type' => $_SERVER['HTTP_X_FILE_CONTENT_TYPE']
+    ]));
+    fclose($fm);
 }

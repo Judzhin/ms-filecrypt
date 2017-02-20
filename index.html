@@ -42,7 +42,7 @@
             <button type="button" class="btn btn-default btn-crypt">Crypt</button>
             <button type="button" class="btn btn-default btn-load">Load</button>
             <button type="button" class="btn btn-default btn-decrypt">Decrypt</button>
-            <a href="#" class="btn btn-download hide">Download</a>
+            <a href="#" class="btn btn-download" download="">Download</a>
 
         </form>
     </div>
@@ -64,7 +64,7 @@
 <!--<script src="src/FileDecryptBlobCollection.js"></script>-->
 <!--<script src="src/FileDecrypt.js"></script>-->
 
-<script src="dist/js/filecrypt.min.js"></script>
+<script src="dist/js/filecrypt.js"></script>
 
 <script>
 
@@ -104,7 +104,7 @@
     $('.btn-load').on('click', function (e) {
 
         objFileDecrypt = new FileDecrypt({
-            url: 'http://filecrypt.tut/uploads/11.lorem.pdf.bin',
+            url: 'http://filecrypt.tut/download.php?f=' + objFileCrypt.getFileName(),
             passphrase: password,
             listeners: {
                 loaded: function() {
@@ -118,25 +118,21 @@
 
         progressBar(0);
 
-        objFileDecrypt.process({
-            passphrase: password,
-//            listeners: {
-//
-//                decrypting: function(objOptions) {
-//                    progressBar(objOptions.process);
-//                },
-//
-//                decrypted: function(e){
-//                    $(".btn-download").attr("href", e.target.result).hide().fadeIn();
-//                }
-//            }
+        objFileDecrypt.setPassphrase(password);
+        //objFileDecrypt.process({
+        //    passphrase: password
+        //});
+
+        objFileDecrypt.decrypting({
+            decripted: function(e) {
+                $('.btn-download').attr('href', e.target.result);
+                $('.btn-download').attr('download', objFileDecrypt.getFileName());
+            }
         });
+
     });
 
     $('.btn-result').on('click', function (e) {
-
-
-        debugger;
 
 //        objFileDecrypt.process({
 //            passphrase: password,

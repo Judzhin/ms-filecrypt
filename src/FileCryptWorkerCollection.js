@@ -17,19 +17,26 @@ FileCryptWorkerCollection.prototype = {
     DEFAULTS: {
 
         count: 4,
-        /**
-         *
-         * @param e
-         */
+        listeners: {
+            /**
+             *
+             * @param e
+             */
+            success: function (e) {
+            },
 
-        success: function (e) {
-        },
-
-        /**
-         *
-         * @param e
-         */
-        failure: function (e) {
+            /**
+             *
+             * @param e
+             */
+            failure: function (e) {
+            },
+            /**
+             *
+             * @param objCollection
+             */
+            terminate: function(objCollection) {
+            }
         }
     },
 
@@ -41,11 +48,11 @@ FileCryptWorkerCollection.prototype = {
 
         for (var i = 0; i < this.options.count; i++) {
             var objWorker = new Worker("/dist/js/worker.encrypt.js");
-            objWorker.onError = this.options.failure;
+            objWorker.onError = this.options.listeners.failure;
             this.items.push(objWorker);
         }
 
-        this.onSuccess(this.options.success);
+        this.onSuccess(this.options.listeners.success);
     },
 
     /**
@@ -96,13 +103,19 @@ FileCryptWorkerCollection.prototype = {
 
     /**
      *
+     * @param objHashCollection
      * @returns {FileCryptWorkerCollection}
      */
-    terminate: function() {
+    terminate: function(objHashCollection) {
 
         this._forEach(function(objWorker){
             objWorker.terminate();
         });
+
+        if ('terminate' in this.options.listeners
+            && $.isFunction(this.options.listeners['terminate'])) {
+            this.options.listeners.terminate(this, objHashCollection);
+        }
 
         return this;
     }
