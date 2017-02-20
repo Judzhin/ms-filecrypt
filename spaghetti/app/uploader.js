@@ -60,6 +60,7 @@ $(function () {
             contentType: file.type,
             chunkDelimiter: window.secureShared.chunkDelimiter
         };
+
         // Listen to encryption events
         var finished = 0;
         var total = 0;
@@ -70,6 +71,7 @@ $(function () {
         }
 
         function onWorkerMessage(e) {
+
             // received a slice.
             if (_.isString(e.data)) {
                 // message

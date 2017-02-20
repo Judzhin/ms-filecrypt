@@ -22,7 +22,7 @@ function encrypt(oEvent){
   var fileData;
   var time = new Date();
   if(oEvent.data.slice) fileData = fileReader.readAsBinaryString(oEvent.data.slice); // reads as utf8 string
-  //postMessage("time to read file: " + (new Date() - time));
+  // postMessage("time to read file: " + (new Date() - time));
   var fileName = oEvent.data.fileName;
   var passphrase = oEvent.data.passphrase;
   var encrypted = {index: oEvent.data.index}; // keep index for eventual rebuilding
