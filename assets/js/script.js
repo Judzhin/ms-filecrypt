@@ -6,7 +6,6 @@ $(function () {
         delimiter = '/--delimiter--/';
 
     /* Step 1 */
-
     $('#step1 .encrypt').click(function () {
         body.attr('class', 'encrypt');
 
@@ -72,16 +71,10 @@ $(function () {
             return;
         }
 
-        // The HTML5 FileReader object will allow us to read the
-        // contents of the	selected file.
-
-        var reader = new FileReader();
-
         if (body.hasClass('encrypt')) {
 
             // Encrypt the file!
 
-            // var file = e.target.files[0];
             var worker = new Worker('worker.js');
 
             worker.postMessage({
@@ -98,75 +91,33 @@ $(function () {
                     step(4);
                 }
             };
-
-            // reader.onload = function (e) {
-            //
-            //     // Use the CryptoJS library and the AES cypher to encrypt the
-            //     // contents of the file, held in e.target.result, with the password
-            //
-            //     var encrypted = CryptoJS.AES.encrypt(e.target.result, password);
-            //
-            //     // The download attribute will cause the contents of the href
-            //     // attribute to be downloaded when clicked. The download attribute
-            //     // also holds the name of the file that is offered for download.
-            //
-            //     a.attr('href', 'data:application/octet-stream,' + encrypted);
-            //     a.attr('download', file.name + '.encrypted');
-            //
-            //     step(4);
-            // };
-            //
-            // // This will encode the contents of the file into a data-uri.
-            // // It will trigger the onload handler above, with the result
-            //
-            // reader.readAsDataURL(file);
         }
         else {
 
             // Decrypt it!
 
-                var worker = new Worker('worker.js');
+            var worker = new Worker('worker.js');
 
-                worker.postMessage({
-                    op: 'decrypt',
-                    file: file,
-                    password: password,
-                    delimiter: delimiter
-                });
+            worker.postMessage({
+                op: 'decrypt',
+                file: file,
+                password: password,
+                delimiter: delimiter
+            });
 
-                worker.onmessage = function (msg) {
-                    if (msg.data.progress == 'complete') { // completed
-                        saveAs(msg.data.plaintext, file.name.replace(/\.encrypted$/,'')); // save to file
-                        step(4);
-                    } else if (msg.data.progress == 'failure') {
-                        alert('You have entered an incorrect password');
-                    }
-                };
-
-            // reader.onload = function (e) {
-            //
-            //     // var decrypted = CryptoJS.AES.decrypt(e.target.result, password)
-            //     //     .toString(CryptoJS.enc.Latin1);
-            //     //
-            //     // if (!/^data:/.test(decrypted)) {
-            //     //     alert("Invalid pass phrase or file! Please try again.");
-            //     //     return false;
-            //     // }
-            //     //
-            //     // a.attr('href', decrypted);
-            //     // a.attr('download', file.name.replace('.encrypted', ''));
-            //
-            //     step(4);
-            // };
-            //
-            // reader.readAsText(file);
+            worker.onmessage = function (msg) {
+                if (msg.data.progress == 'complete') { // completed
+                    saveAs(msg.data.plaintext, file.name.replace(/\.encrypted$/, '')); // save to file
+                    step(4);
+                } else if (msg.data.progress == 'failure') {
+                    alert('You have entered an incorrect password');
+                }
+            };
         }
     });
 
 
     /* The back button */
-
-
     back.click(function () {
 
         // Reinitialize the hidden file inputs,
