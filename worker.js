@@ -73,16 +73,24 @@ onmessage = function (msg) {
 
         case 'decrypt':
 
-
             var reader = new FileReaderSync();
             var ciphertext = reader.readAsText(msg.data.file);
             var slices = ciphertext.split(msg.data.delimiter);
             var plains = [];
 
             for (var i = 0; i < slices.length; i++) {
-                var plaintext = CryptoJS.AES.decrypt(
-                    Latin1Formatter.parse(slices[i]), msg.data.password)
-                    .toString(CryptoJS.enc.Utf8);
+
+                try {
+
+                    var plaintext = CryptoJS.AES.decrypt(
+                        Latin1Formatter.parse(slices[i]), msg.data.password)
+                        .toString(CryptoJS.enc.Utf8);
+
+                } catch (err) {
+                    self.postMessage({progress: 'failure'});
+                    return;
+                }
+
                 plains.push(plaintext);
             }
 
@@ -91,6 +99,8 @@ onmessage = function (msg) {
             });
 
             self.postMessage({progress: 'complete', plaintext: blob});
+
+
             break;
     }
 };
