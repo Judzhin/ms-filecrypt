@@ -29,54 +29,50 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/aes.min.js"></script>
 
-<script src="formatter.js"></script>
-<script src="util.js"></script>
-
 <script>
 
-    var password = 'Test Pass';
+    // http://www.movable-type.co.uk/scripts/aes.html
 
-    $('#inputEncript').on('change', function(e){
+    var password = 'Test Pass';
+    var delimiter = '/--delimiter--/';
+
+    $('#inputEncript').on('change', function (e) {
 
         var file = e.target.files[0];
+        var worker = new Worker('worker.js');
 
-        // Encrypt the file!
-        var reader = new FileReader();
+        worker.postMessage({
+            op: 'encrypt',
+            file: file,
+            password: password,
+            delimiter: delimiter
+        });
 
-        reader.onload = function(e){
-
-            var ciphertext = CryptoJS.AES.encrypt(e.target.result, password)
-                    .toString(Latin1Formatter);
-            var blob = new Blob([ciphertext], { type: 'application/octet-stream' });
-            saveAs(blob, filename + '.encrypted');
+        worker.onmessage = function (msg) {
+            if (msg.data.progress == 'complete') { // completed
+                worker.terminate();
+                saveAs(msg.data.ciphertext, file.name + '.encrypted');                          // save to file
+            }
         };
-
-        // reader.readAsDataURL(file);
-        reader.readAsBinaryString(file);
     });
 
-    $('#inputDecript').on('change', function(e){
+    $('#inputDecript').on('change', function (e) {
 
         var file = e.target.files[0];
+        var worker = new Worker('worker.js');
 
-        // Encrypt the file!
-        var reader = new FileReader();
+        worker.postMessage({
+            op: 'decrypt',
+            file: file,
+            password: password,
+            delimiter: delimiter
+        });
 
-        reader.onload = function(e){
-
-            var data = Latin1Formatter.parse(e.target.result);
-
-            var plaintext = CryptoJS.AES.decrypt(data, password)
-                    .toString(CryptoJS.enc.Utf8);
-
-            var blob = new Blob([str2ab(plaintext)], {
-                type: 'application/octet-stream'
-            });
-
-            saveAs(blob, file.name.replace('.encrypted',''));
+        worker.onmessage = function (msg) {
+            if (msg.data.progress == 'complete') { // completed
+                saveAs(msg.data.plaintext, file.name.replace(/\.encrypted$/,'')); // save to file
+            }
         };
-
-        reader.readAsText(file);
     });
 
 </script>
