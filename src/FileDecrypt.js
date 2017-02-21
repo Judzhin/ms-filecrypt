@@ -21,7 +21,7 @@ FileDecrypt.prototype = {
     DEFAULTS: {
         url: '',
         passphrase: '',
-        delimiter: '/file-crypt-delimiter/',
+        delimiter: '/--delimiter--/',
         listeners: {
             download: function (e) {
             },
@@ -145,6 +145,8 @@ FileDecrypt.prototype = {
             count: objHashCollection.getLength(),
             listeners: {
                 terminate: $.proxy(function(objSelf, objBlobCollection) {
+
+                    console.log(objBlobCollection);
 
                     // Create blob
                     var objBinaryData = objBlobCollection.toString(),

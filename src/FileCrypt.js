@@ -20,13 +20,13 @@ FileCrypt.prototype = {
 
         file: {},
         passphrase: '',
-        chunk_size: 1024 * 1024, // 1MB
-        delimiter: '/file-crypt-delimiter/',
+        chunk_size: 1024 * 1024, // 1024 * 512, // 1024 * 1024, // 1MB
+        delimiter: '/--delimiter--/',
         listeners: {
             crypting: function () {
                 // file event
             },
-            crypted: function() {
+            crypted: function () {
                 // file event
             }
         },
@@ -44,7 +44,7 @@ FileCrypt.prototype = {
      * @param objFile
      * @returns {FileCrypt}
      */
-    setFile: function(objFile) {
+    setFile: function (objFile) {
         this.options.file = objFile;
         return this;
     },
@@ -54,7 +54,7 @@ FileCrypt.prototype = {
      * @param strPassphrase
      * @returns {FileCrypt}
      */
-    setPassphrase: function(strPassphrase) {
+    setPassphrase: function (strPassphrase) {
         this.options.passphrase = strPassphrase;
         return this;
     },
@@ -64,7 +64,7 @@ FileCrypt.prototype = {
      * @param intChunkSize
      * @returns {FileCrypt}
      */
-    setChunkSize: function(intChunkSize) {
+    setChunkSize: function (intChunkSize) {
         this.options.options.chunk_size = intChunkSize;
         return this;
     },
@@ -73,7 +73,7 @@ FileCrypt.prototype = {
      *
      * @returns {*}
      */
-    getFileName: function() {
+    getFileName: function () {
         return this.options.file.name;
     },
 
@@ -81,11 +81,11 @@ FileCrypt.prototype = {
      *
      * @param fn
      */
-    encrypting: function(fn) {
+    encrypting: function (fn) {
 
         if ($.isFunction(fn)) {
             this.options.listeners.crypting = fn;
-        } else if($.isPlainObject(fn)) {
+        } else if ($.isPlainObject(fn)) {
 
             if ('crypting' in fn && $.isFunction(fn['crypting'])) {
                 this.options.listeners.crypting = fn['crypting'];
@@ -150,10 +150,12 @@ FileCrypt.prototype = {
 
             ++intCounter;
 
-            // fire event
-            this.options.listeners.crypting({
-                process: 100 / objBlobCollection.getLength() * intCounter
-            });
+            if ('crypting' in this.options.listeners && $.isFunction(this.options.listeners['crypting'])) {
+                // fire event
+                this.options.listeners.crypting({
+                    process: 100 / objBlobCollection.getLength() * intCounter
+                });
+            }
 
             objHashCollection.add(
                 e.data.data,
@@ -184,17 +186,72 @@ FileCrypt.prototype = {
      */
     save: function (objOptions) {
 
-        var objSettings = $.extend({
-                headers: {
-                    'X-File-Content-Length': this.options.file.size,
-                    'X-File-Content-Type': this.options.file.type,
-                    'X-File-Name': this.options.file.name
-                },
-                data: this._encrypted.toString()
-            }, this.options.proxy, objOptions
-        );
+        // var objSettings = $.extend({
+        //         headers: {
+        //             'X-File-Content-Length': this.options.file.size,
+        //             'X-File-Content-Type': this.options.file.type,
+        //             'X-File-Name': this.options.file.name
+        //         },
+        //         data: this._encrypted.toString()
+        //     }, this.options.proxy, objOptions
+        // );
+        //
+        // return $.ajax(objSettings);
 
-        return $.ajax(objSettings);
+        // var objFormData = new FormData();
+        //
+        // this._encrypted.forEach(function(objItem, intIndex){
+        //     objFormData.append(intIndex, objItem);
+        // });
+        //
+        // var objSettings = $.extend({
+        //         headers: {
+        //             'X-File-Delimiter': this.options.delimiter,
+        //             'X-File-Content-Length': this.options.file.size,
+        //             'X-File-Content-Type': this.options.file.type,
+        //             'X-File-Name': this.options.file.name
+        //         },
+        //         data: objFormData
+        //     }, this.options.proxy, objOptions
+        // );
+        //
+        // $.ajax(objSettings);
+
+        var objFormData = new FormData();
+        objFormData.append('filename', this.options.file.name);
+        objFormData.append('type', this.options.file.type);
+
+        var items = [];
+
+        this._encrypted.forEach(function(objItem, intIndex){
+            items[intIndex] = objItem;
+        });
+
+        objFormData.append('file', items.join(this.options.delimiter));
+
+        $.ajax({
+           url: 'server.php',
+           type: 'POST',
+           data: objFormData,
+           cache: false,
+           dataType: 'json',
+           processData: false, // Don't process the files
+           contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+           success: function (data, textStatus, jqXHR) {
+               if (typeof data.error === 'undefined') {
+                   console.log(["data", data]);
+
+               } else {
+                   // Handle errors here
+                   console.log('ERRORS: ' + data.error);
+               }
+           },
+           error: function (jqXHR, textStatus, errorThrown) {
+               // Handle errors here
+               console.log('ERRORS: ' + textStatus);
+               // STOP LOADING SPINNER
+           }
+        });
     }
 };
 

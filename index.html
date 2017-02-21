@@ -8,7 +8,7 @@
     <title>Bootstrap 101 Template</title>
 
     <!-- Bootstrap -->
-    <link href="../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -19,134 +19,129 @@
 </head>
 <body>
 
-<div class="container">
-    <div class="row">
-        <form class="col-md-6 col-lg-offset-3" style="padding: 50px;">
-            <div class="form-group">
-                <label for="exampleInputFile">File input</label>
-                <input type="file" id="exampleInputFile">
-                <p class="help-block">Example block-level help text here.</p>
-            </div>
-
-            <div class="progress">
-                <div class="progress-bar"
-                     role="progressbar"
-                     aria-valuenow="0"
-                     aria-valuemin="0"
-                     aria-valuemax="100"
-                     style="width: 0%;">
-                    0%
-                </div>
-            </div>
-
-            <button type="button" class="btn btn-default btn-crypt">Crypt</button>
-            <button type="button" class="btn btn-default btn-load">Load</button>
-            <button type="button" class="btn btn-default btn-decrypt">Decrypt</button>
-            <a href="#" class="btn btn-download" download="">Download</a>
-
-        </form>
-    </div>
-</div>
+<input type="file" id="inputEncript">
+<input type="file" id="inputDecript">
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="node_modules/crypto-js/crypto-js.js"></script>
-
-<!--<script src="src/FileCryptUtil.js"></script>-->
-<!--<script src="src/FileCryptWorkerCollection.js"></script>-->
-<!--<script src="src/FileCryptHashCollection.js"></script>-->
-<!--<script src="src/FileCryptBlobCollection.js"></script>-->
-<!--<script src="src/FileCrypt.js"></script>-->
-
-<!--<script src="src/FileDecryptWorkerCollection.js"></script>-->
-<!--<script src="src/FileDecryptBlobCollection.js"></script>-->
-<!--<script src="src/FileDecrypt.js"></script>-->
-
-<script src="dist/js/filecrypt.js"></script>
+<script src="http://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"></script>
+<script src="/node_modules/crypto-js/crypto-js.js"></script>
+<script src="/node_modules/crypto-js/aes.js"></script>
 
 <script>
 
-    var delimiter = '/--delimiter--/', password = 'Some Password', objFileCrypt;
+    var Latin1Formatter = {
 
-    var progressBar = function (per) {
-        $('.progress-bar').attr('aria-valuenow', per);
-        $('.progress-bar').css('width', per + '%');
-        $('.progress-bar').html(Math.round(per) + '%');
+        /**
+         * Converts a cipher params object to an OpenSSL-style string using Latin1
+         *
+         * @param {CipherParams} cipherParams The cipher params object.
+         *
+         * @return {string} The OpenSSL-style string.
+         *
+         */
+        stringify: function (cipherParams, opts) {
+            // Shortcuts
+            var ciphertext = cipherParams.ciphertext;
+            var salt = cipherParams.salt;
+            var wordArray;
+
+            // Format
+            if (salt) {
+                wordArray = CryptoJS.lib.WordArray.create([0x53616c74, 0x65645f5f]).concat(salt).concat(ciphertext);
+            } else {
+                wordArray = ciphertext;
+            }
+
+            return wordArray.toString(CryptoJS.enc.Latin1);
+        },
+
+        /**
+         * Converts an OpenSSL-style string using Latin1 to a cipher params object.
+         *
+         * @param {string} openSSLStr The OpenSSL-style string.
+         *
+         * @return {CipherParams} The cipher params object.
+         *
+         */
+        parse: function (str) {
+            // Parse base64
+            var ciphertext = CryptoJS.enc.Latin1.parse(str), salt;
+
+            // Test for salt
+            if (ciphertext.words[0] == 0x53616c74 && ciphertext.words[1] == 0x65645f5f) {
+                // Extract salt
+                salt = CryptoJS.lib.WordArray.create(ciphertext.words.slice(2, 4));
+
+                // Remove salt from ciphertext
+                ciphertext.words.splice(0, 4);
+                ciphertext.sigBytes -= 16;
+            }
+
+            return CryptoJS.lib.CipherParams.create({ ciphertext: ciphertext, salt: salt });
+        }
     };
 
-    $('input[type="file"]').on('change', function (e) {
+    function str2ab(str) {
+        var objBuf = new ArrayBuffer(str.length), // 2 bytes for each char
+                objCollection = new Uint8Array(objBuf);
 
-        progressBar(0);
+        for (var i = 0, strLen = str.length; i < strLen; i++) {
+            objCollection[i] = str.charCodeAt(i);
+        }
 
-        objFileCrypt = new FileCrypt({
-            file: e.target.files[0],
-            passphrase: password,
-            delimiter: delimiter,
-            listeners: {
-                crypting: function (objOptions) {
-                    progressBar(objOptions.process);
-                }
-            }
-        });
+        return objBuf;
+    };
 
+    var password = 'Test Pass';
+
+    $('#inputEncript').on('change', function(e){
+
+        var file = e.target.files[0];
+
+        filename = file.name;
+        contentType = file.type;
+        // Encrypt the file!
+        var reader = new FileReader();
+
+        reader.onload = function(e){
+            // var plaintext = reader.readAsText(, 'utf-8');
+            var ciphertext = CryptoJS.AES.encrypt(e.target.result, password)
+                    .toString(Latin1Formatter);
+            var blob = new Blob([ciphertext], { type: 'application/octet-stream' });
+            saveAs(blob, filename + '.encrypted');
+        };
+
+        // This will encode the contents of the file into a data-uri.
+        // It will trigger the onload handler above, with the result
+
+        // reader.readAsDataURL(file);
+        reader.readAsBinaryString(file);
     });
 
-    $('.btn-crypt').on('click', function (e) {
-        objFileCrypt.save({
-            url: 'upload.php'
-        });
-    });
+    $('#inputDecript').on('change', function(e){
 
-    var objFileDecrypt;
+        var file = e.target.files[0];
 
-    $('.btn-load').on('click', function (e) {
+        // Encrypt the file!
+        var reader = new FileReader();
 
-        objFileDecrypt = new FileDecrypt({
-            url: 'http://filecrypt.tut/download.php?f=' + objFileCrypt.getFileName(),
-            passphrase: password,
-            listeners: {
-                loaded: function() {
+        reader.onload = function(e){
 
-                }
-            }
-        });
-    });
+            var data = Latin1Formatter.parse(e.target.result);
 
-    $('.btn-decrypt').on('click', function (e) {
+            var plaintext = CryptoJS.AES.decrypt(data, password)
+                    .toString(CryptoJS.enc.Utf8);
 
-        progressBar(0);
+            var blob = new Blob([str2ab(plaintext)], {
+                type: 'application/octet-stream'
+            });
 
-        objFileDecrypt.setPassphrase(password);
-        //objFileDecrypt.process({
-        //    passphrase: password
-        //});
+            saveAs(blob, file.name.replace('.encrypted',''));
+        };
 
-        objFileDecrypt.decrypting({
-            decripted: function(e) {
-                $('.btn-download').attr('href', e.target.result);
-                $('.btn-download').attr('download', objFileDecrypt.getFileName());
-            }
-        });
-
-    });
-
-    $('.btn-result').on('click', function (e) {
-
-//        objFileDecrypt.process({
-//            passphrase: password,
-//            listeners: {
-//
-//                decrypting: function(objOptions) {
-//                    progressBar(objOptions.process);
-//                },
-//
-//                decrypted: function(e){
-//                    $(".btn-download").attr("href", e.target.result).hide().fadeIn();
-//                }
-//            }
-//        });
+        reader.readAsText(file);
     });
 
 </script>

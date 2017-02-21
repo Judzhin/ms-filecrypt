@@ -51,7 +51,7 @@ FileDecryptWorkerCollection.prototype = {
     _initComponent: function (intCounter) {
 
         for (var i = 0; i < intCounter; i++) {
-            var objWorker = new Worker("/dist/js/worker.decrypt.js");
+            var objWorker = new Worker("/src/worker.decrypt.js");
             objWorker.onError = this.options.listeners.failure;
             this.items.push(objWorker);
         }

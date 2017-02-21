@@ -4,6 +4,7 @@
  */
 importScripts('/node_modules/crypto-js/crypto-js.js');
 importScripts('/node_modules/crypto-js/aes.js');
+importScripts('/node_modules/crypto-js/tripledes.js');
 importScripts('./FileLatin1Formatter.js');
 
 /**
@@ -18,9 +19,12 @@ self.onmessage = function (e) {
 
             var strDecrypted = CryptoJS.AES
                 .decrypt(
-                    FileLatin1Formatter.parse(e.data.hash),
+                    // FileLatin1Formatter.parse(e.data.hash),
+                    e.data.hash,
                     e.data.passphrase
-                ).toString(CryptoJS.enc.Utf8);
+                )
+                .toString(CryptoJS.enc.Utf8);
+                //.toString();
 
             postMessage({
                 success: true,

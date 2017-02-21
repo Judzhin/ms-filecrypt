@@ -47,7 +47,7 @@ FileCryptWorkerCollection.prototype = {
     _initComponent: function () {
 
         for (var i = 0; i < this.options.count; i++) {
-            var objWorker = new Worker("/dist/js/worker.encrypt.js");
+            var objWorker = new Worker("src/worker.encrypt.js");
             objWorker.onError = this.options.listeners.failure;
             this.items.push(objWorker);
         }
