@@ -1,3 +1,10 @@
+/**
+ *
+ * @type {{
+ *  stringify: Latin1Formatter.stringify,
+ *  parse: Latin1Formatter.parse
+ * }}
+ */
 var Latin1Formatter = {
 
     /**

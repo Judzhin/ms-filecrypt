@@ -70,7 +70,7 @@
 
         worker.onmessage = function (msg) {
             if (msg.data.progress == 'complete') { // completed
-                saveAs(msg.data.plaintext, file.name.replace(/\.encrypted$/,'')); // save to file
+                saveAs(msg.data.plaintext, file.name.replace(/\.encrypted$/, '')); // save to file
             }
         };
     });

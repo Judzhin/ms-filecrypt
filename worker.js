@@ -44,46 +44,42 @@ onmessage = function (msg) {
 
             var file = msg.data.file;
             file.slice = file.mozSlice || file.webkitSlice || file.slice; // compatibility
-            var position = 0, slices = [];
+
+            var reader = new FileReaderSync(),
+                items = [],
+                position = 0;
 
             while (position < file.size) {
+
                 var slice = file.slice(
-                    position, position += (1024 * 1024)
+                    position, position += e.data.chunSize
                 );
-                slices.push(slice);
-            }
 
-            var reader = new FileReaderSync(), encrypteds = [];
-
-            for (var i = 0; i < slices.length; i++) {
-                var chunk = reader.readAsBinaryString(slices[i]);
+                var chunk = reader.readAsBinaryString(slice);
                 var encrypted = CryptoJS.AES
                     .encrypt(chunk, msg.data.password)
                     .toString(Latin1Formatter);
-                encrypteds.push(encrypted);
+                items.push(encrypted);
             }
 
-            // return encrypted file as Blob; UI thread can then use saveAs()
-            var blob = new Blob([encrypteds.join(msg.data.delimiter)], {
-                type: 'application/octet-stream'
-            });
-
-            self.postMessage({progress: 'complete', ciphertext: blob});
+            self.postMessage({
+                progress: 'complete',
+                ciphertext: new Blob([items.join(msg.data.delimiter)], {
+                    type: 'application/octet-stream'
+            })});
             break;
 
         case 'decrypt':
 
-            var reader = new FileReaderSync();
-            var ciphertext = reader.readAsText(msg.data.file);
-            var slices = ciphertext.split(msg.data.delimiter);
-            var plains = [];
+            var reader = new FileReaderSync(),
+                ciphertext = reader.readAsText(msg.data.file),
+                plains = [];
 
-            for (var i = 0; i < slices.length; i++) {
-
+            ciphertext.split(msg.data.delimiter).forEach(function(item) {
                 try {
 
                     var plaintext = CryptoJS.AES.decrypt(
-                        Latin1Formatter.parse(slices[i]), msg.data.password)
+                        Latin1Formatter.parse(item), msg.data.password)
                         .toString(CryptoJS.enc.Utf8);
 
                 } catch (err) {
@@ -92,13 +88,14 @@ onmessage = function (msg) {
                 }
 
                 plains.push(plaintext);
-            }
-
-            var blob = new Blob([str2ab(plains.join(""))], {
-                type: 'application/octet-stream'
             });
 
-            self.postMessage({progress: 'complete', plaintext: blob});
+            self.postMessage({
+                progress: 'complete',
+                plaintext: new Blob([str2ab(plains.join(""))], {
+                    type: 'application/octet-stream'
+                })
+            });
 
 
             break;
