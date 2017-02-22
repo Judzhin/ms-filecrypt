@@ -52,7 +52,7 @@ onmessage = function (msg) {
             while (position < file.size) {
 
                 var slice = file.slice(
-                    position, position += e.data.chunSize
+                    position, position += msg.data.chunSize
                 );
 
                 var chunk = reader.readAsBinaryString(slice);
